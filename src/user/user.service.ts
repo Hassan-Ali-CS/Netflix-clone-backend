@@ -2,13 +2,13 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-// import { Movie } from 'src/movie/entities/movie.entity';
+import { Movie } from 'src/movie/entities/movie.entity';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { ResetpassService } from 'src/resetpass/resetpass.service';
 import { signupUserDto } from './DTO/signup-user.dto';
-// import { loginUserDto } from './DTO/login-user.dto';
-// import { AuthService } from 'src/auth/auth.service';
+import { loginUserDto } from './DTO/login-user.dto';
+import { AuthService } from 'src/auth/auth.service';
 
 
 @Injectable()
@@ -17,9 +17,9 @@ export class UserService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         private readonly resetPassService: ResetpassService,
-        //@InjectRepository(Movie)
-        //private readonly movieRepository: Repository<Movie>,
-        //private readonly authService: AuthService
+        @InjectRepository(Movie)
+        private readonly movieRepository: Repository<Movie>,
+        private readonly authService: AuthService
     ){}
     
         async signup(signupDto: signupUserDto): Promise<{message: string; user: User}>{
@@ -46,40 +46,40 @@ export class UserService {
             };
         }
 
-        // async login(loginDto: loginUserDto) {
-        //     const { email, password } = loginDto;
+        async login(loginDto: loginUserDto) {
+            const { email, password } = loginDto;
         
-        //     console.log("Checking user for email:", this.userRepository);
+            console.log("Checking user for email:", this.userRepository);
         
-        //     const user = await this.userRepository.findOne({ where: { email } });
+            const user = await this.userRepository.findOne({ where: { email } });
         
-        //     if (!user) {
-        //         console.log(" User not found for email:", email);
-        //         throw new NotFoundException("Invalid email or password");
-        //     }
+            if (!user) {
+                console.log(" User not found for email:", email);
+                throw new NotFoundException("Invalid email or password");
+            }
         
-        //     console.log(" User found:", user);
+            console.log(" User found:", user);
         
-        //     // Debug Password Validation
-        //     const isPasswordValid = await user.validatePassword(password);
-        //     console.log("Password validation result:", isPasswordValid);
+            // Debug Password Validation
+            const isPasswordValid = await user.validatePassword(password);
+            console.log("Password validation result:", isPasswordValid);
         
-        //     if (!isPasswordValid) {
-        //         console.log(" Incorrect password");
-        //         throw new NotFoundException("Invalid email or password");
-        //     }
+            if (!isPasswordValid) {
+                console.log(" Incorrect password");
+                throw new NotFoundException("Invalid email or password");
+            }
         
-        //     console.log("Password is correct. Generating token...");
+            console.log("Password is correct. Generating token...");
         
-        //     const token = this.authService.generateToken(user); // Ensure generateJwtToken exists
+            const token = this.authService.generateToken(user); // Ensure generateJwtToken exists
         
-        //     return {
-        //         message: "Login successful",
-        //         userId: user.id,  //  Ensure userId is returned
-        //         user,
-        //         token,
-        //     };
-        // }
+            return {
+                message: "Login successful",
+                userId: user.id,  //  Ensure userId is returned
+                user,
+                token,
+            };
+        }
         
 
         async forgotPassword(email: string) {
