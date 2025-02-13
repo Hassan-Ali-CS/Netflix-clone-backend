@@ -156,42 +156,55 @@ export class UserService {
             return { message: 'Password reset successfully' };
         }
 
-        // async addToFavourites (userId: number, movieId: number): Promise<{ message: string }> {
-        //     const user = await this.userRepository.findOne({ where: { id:userId }, relations: ["favouriteMovies"] });
-        //     const movie = await this.movieRepository.findOne({ where: {id:movieId } });
+        async addToFavourites (userId: number, movieId: number): Promise<{ message: string }> {
+            const user = await this.userRepository
+                .createQueryBuilder("user")
+                .leftJoinAndSelect("user.favouriteMovies", "movie")
+                .where("user.id = :id", { id: userId })
+                .getOne();
 
-        //     if(!user) throw new NotFoundException("User not Found");
-        //     if(!movie) throw new NotFoundException("Movie not Found");
+            if(!user) throw new NotFoundException("User not Found");
 
-        //     //Prevent Duplicates
-        //     if (user.favouriteMovies.some(m => m.id === movie.id)) {
-        //         throw new BadRequestException("Movie already in Favourites");
-        //     }
+            const movie = await this.movieRepository.findOne({ where: {id:movieId } });
+            if(!movie) throw new NotFoundException("Movie not Found");
 
-        //     user.favouriteMovies.push(movie);
-        //     await this.userRepository.save(user);
+            //Prevent Duplicates
+            const isMovieAlreadyAdded = await this.userRepository
+                .createQueryBuilder("user")
+                .leftJoin("user.favouriteMovies", "movie")
+                .where("user.id = :userId", { userId})
+                .andWhere("movie.id = :movieId", { movieId })
+                .getOne();
+                
+            if(isMovieAlreadyAdded) {
+                throw new BadRequestException("Movie Already in Favourites")
+            }
 
-        //     return { message: "Movie added to favourites" };
-        // }
+            user.favouriteMovies.push(movie);
+            // user.favouriteMovies = [...user.favouriteMovies, movie];
+            await this.userRepository.save(user);
 
-        // async removeFromFavorites(userId: number, movieId: number): Promise<{ message: string }> {
-        //     const user = await this.userRepository.findOne({ where: { id: userId }, relations: ["favouriteMovies"] });
+            return { message: "Movie added to favourites" };
+        }
+
+        async removeFromFavorites(userId: number, movieId: number): Promise<{ message: string }> {
+            const user = await this.userRepository.findOne({ where: { id: userId }, relations: ["favouriteMovies"] });
     
-        //     if (!user) throw new NotFoundException("User not found");
+            if (!user) throw new NotFoundException("User not found");
     
-        //     user.favouriteMovies = user.favouriteMovies.filter(m => m.id !== movieId);
-        //     await this.userRepository.save(user);
+            user.favouriteMovies = user.favouriteMovies.filter(m => m.id !== movieId);
+            await this.userRepository.save(user);
     
-        //     return { message: "Movie removed from favorites" };
-        // }
+            return { message: "Movie removed from favorites" };
+        }
     
-        // async getFavoriteMovies(userId: number): Promise<Movie[]> {
-        //     const user = await this.userRepository.findOne({ where: { id: userId }, relations: ["favouriteMovies"] });
+        async getFavoriteMovies(userId: number): Promise<Movie[]> {
+            const user = await this.userRepository.findOne({ where: { id: userId }, relations: ["favouriteMovies"] });
     
-        //     if (!user) throw new NotFoundException("User not found");
+            if (!user) throw new NotFoundException("User not found");
     
-        //     return user.favouriteMovies;
-        // }
+            return user.favouriteMovies;
+        }
 }   
     
 

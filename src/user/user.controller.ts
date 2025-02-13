@@ -29,19 +29,19 @@ export class UserController {
         return this.userService.resetPassword(token, password);
     }
 
-    // @Post(':userId/favourites/:movieId')
-    // async addToFavorites(@Param('userId') userId: number, @Param('movieId') movieId: number) {
-    //     return this.userService.addToFavourites(userId, movieId);
-    // }
+    @Post(':userId/favourites/:movieId')
+    async addToFavorites(@Param('userId') userId: number, @Param('movieId') movieId: number) {
+        return this.userService.addToFavourites(userId, movieId);
+    }
 
-    // @Delete(':userId/favourites/:movieId')
-    // async removeFromFavorites(@Param('userId') userId: number, @Param('movieId') movieId: number) {
-    //     return this.userService.removeFromFavorites(userId, movieId);
-    // }
+    @Delete(':userId/favourites/:movieId')
+    async removeFromFavorites(@Param('userId') userId: number, @Param('movieId') movieId: number) {
+        return this.userService.removeFromFavorites(userId, movieId);
+    }
 
-    // @Get(':userId/favourites')
-    // async getFavorites(@Param('userId') userId: number) {
-    //     return this.userService.getFavoriteMovies(userId);
-    // }
+    @Get(':userId/favourites')
+    async getFavorites(@Param('userId') userId: number) {
+        return this.userService.getFavoriteMovies(userId);
+    }
 
 }
