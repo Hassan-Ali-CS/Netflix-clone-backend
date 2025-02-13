@@ -21,10 +21,32 @@ export class UserService {
         private readonly movieRepository: Repository<Movie>,
         private readonly authService: AuthService
     ){}
+
+        // Hash password before saving
+    private async hashPassword(password: string): Promise<string> {
+        const salt = await bcrypt.genSalt(10);
+        return await bcrypt.hash(password, salt);
+    }
+
+    // Validate password
+    private async validatePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+        console.log("Validating password...");
+        console.log("Entered password:", plainPassword);
+        console.log("Stored hashed password:", hashedPassword);
+
+        try {
+            return await bcrypt.compare(plainPassword, hashedPassword);
+        } catch (error) {
+            console.error("bcrypt compare error:", error);
+            return false;
+        }
+    }
+
     
         async signup(signupDto: signupUserDto): Promise<{message: string; user: User}>{
             console.log(this.userRepository);    //for checking the state of in-memory
             console.log("signup Data:", signupDto);
+            console.log("Signing-up user", signupDto.email)
             const {name, email, password} = signupDto;
 
             //checks if the email already exists
@@ -34,8 +56,13 @@ export class UserService {
                 return { message : 'User with this email already exists', user: null};
             }
 
+            //Password are hashed before saving
+            //Ensure password hashing
+            const hashedPassword = await this.hashPassword(password);
+            console.log("Hashed password:", hashedPassword);
+
             //Create and save the new User
-            const newUser = this.userRepository.create ({name, email, password}) ;
+            const newUser = this.userRepository.create ({ name, email, password: hashedPassword });
             await this.userRepository.save(newUser);
 
             console.log(this.userRepository);
@@ -50,6 +77,7 @@ export class UserService {
             const { email, password } = loginDto;
         
             console.log("Checking user for email:", this.userRepository);
+            console.log("Checking user for email:", email);
         
             const user = await this.userRepository.findOne({ where: { email } });
         
@@ -60,8 +88,11 @@ export class UserService {
         
             console.log(" User found:", user);
         
-            // Debug Password Validation
-            const isPasswordValid = await user.validatePassword(password);
+            // Ensure validate password works-Debug Password Validation
+            // const isPasswordValid = await user.validatePassword(password);
+            console.log(password, user.password);
+            const isPasswordValid = await this.validatePassword(password, user.password);
+
             console.log("Password validation result:", isPasswordValid);
         
             if (!isPasswordValid) {
@@ -71,12 +102,11 @@ export class UserService {
         
             console.log("Password is correct. Generating token...");
         
-            const token = this.authService.generateToken(user); // Ensure generateJwtToken exists
+            const token = this.authService.generateToken({sub: user.id, email:user.email}); // Ensure generateJwtToken exists
         
             return {
                 message: "Login successful",
                 userId: user.id,  //  Ensure userId is returned
-                user,
                 token,
             };
         }
@@ -91,7 +121,7 @@ export class UserService {
                 }
         
                 const resetToken = uuidv4();
-                const hashedToken = await bcrypt.hash(resetToken, 10);
+                const hashedToken = await this.hashPassword(resetToken);
                 user.resetToken = hashedToken;
                 user.tokenExpiry = new Date(Date.now() + 3600000);  // Token valid for 1 hour
                 await this.userRepository.save(user);
@@ -118,7 +148,7 @@ export class UserService {
             return { message: 'Invalid or expired token' };
             }
 
-            user.password = await bcrypt.hash(newPassword, 10);
+            user.password = await this.hashPassword(newPassword);
             user.resetToken = null;
             user.tokenExpiry = null;
             await this.userRepository.save(user);

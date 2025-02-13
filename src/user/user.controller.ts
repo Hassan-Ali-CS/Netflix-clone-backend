@@ -14,10 +14,10 @@ export class UserController {
         return this.userService.signup(signupDto); //calls the signup mrthod in the UserService, passing the extracted body signupDto as an argument. 
     }
 
-    // @Post('login')
-    // login(@Body() loginDto: loginUserDto){
-    //     return this.userService.login(loginDto);
-    // }
+    @Post('login')
+    login(@Body() loginDto: loginUserDto){
+        return this.userService.login(loginDto);
+    }
 
     @Post('forgot-password')
     async forgotPassword(@Body('email') email: string) {

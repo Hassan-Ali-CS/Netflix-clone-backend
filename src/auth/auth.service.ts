@@ -2,18 +2,23 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { signupUserDto } from 'src/user/DTO/signup-user.dto';
-// import { loginUserDto } from 'src/user/DTO/login-user.dto';
+import { loginUserDto } from 'src/user/DTO/login-user.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
-    constructor(private readonly jwtServices: JwtService,
+    constructor(
+        private readonly jwtServices: JwtService,
+        private readonly configService: ConfigService,
         @Inject(forwardRef(() => UserService))
                 private readonly userService: UserService,
     ){}
 
     //Generate JWT Tokens
     generateToken (payload: any){
-        return this.jwtServices.sign(payload); //create a jwt token
+        return this.jwtServices.sign(payload, {
+            secret: this.configService.get<string>('JWT_SECRET'),
+        }); //create a jwt token
     }
 
     //validate JWT Token
@@ -47,21 +52,21 @@ export class AuthService {
         return {message: result.message, token}
     }
     
-    //Handle login and Token Generation 
-//     async login(loginDto: loginUserDto) {
-//         console.log("Login Request Data:", loginDto);
+    // Handle login and Token Generation 
+    async login(loginDto: loginUserDto) {
+        console.log("Login Request Data:", loginDto);
     
-//         const result = await this.userService.login(loginDto);
+        const result = await this.userService.login(loginDto);
     
-//         if (result.message === 'Invalid email or password') {
-//           console.log('Login failed: invalid email or password');
-//           return result;
-//         }
+        if (result.message === 'Invalid email or password') {
+          console.log('Login failed: invalid email or password');
+          return result;
+        }
     
-//         console.log('Login successful: Generating Token...');
+        console.log('Login successful: Generating Token...');
     
-//         const token = this.generateToken({ sub: result.user.id, email: result.user.email });
-//         return { message: result.message, token };
-//       }
+        const token = this.generateToken({ sub: result.userId, email: loginDto.email });
+        return { message: result.message, token };
+      }
 }
     
