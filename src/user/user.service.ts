@@ -9,6 +9,7 @@ import { ResetpassService } from 'src/resetpass/resetpass.service';
 import { signupUserDto } from './DTO/signup-user.dto';
 import { loginUserDto } from './DTO/login-user.dto';
 import { AuthService } from 'src/auth/auth.service';
+import { ConfigService } from '@nestjs/config';
 
 
 @Injectable()
@@ -19,7 +20,8 @@ export class UserService {
         private readonly resetPassService: ResetpassService,
         @InjectRepository(Movie)
         private readonly movieRepository: Repository<Movie>,
-        private readonly authService: AuthService
+        private readonly authService: AuthService,
+        private readonly configService: ConfigService
     ){}
 
         // Hash password before saving
@@ -41,7 +43,12 @@ export class UserService {
             return false;
         }
     }
-
+    
+    // Method to generate a 4-digit verification code.
+    private generateverficationCode(): string {
+        const randomCode = Math.floor(Math.random() * 9000) + 1000;
+        return randomCode.toString();
+    }
     
         async signup(signupDto: signupUserDto): Promise<{message: string; user: User}>{
             console.log(this.userRepository);    //for checking the state of in-memory
@@ -61,9 +68,21 @@ export class UserService {
             const hashedPassword = await this.hashPassword(password);
             console.log("Hashed password:", hashedPassword);
 
+            //Generate and save the verification code
+            const verficationCode = this.generateverficationCode();
             //Create and save the new User
-            const newUser = this.userRepository.create ({ name, email, password: hashedPassword });
+            const newUser = this.userRepository.create ({ 
+                name, 
+                email, 
+                password: hashedPassword,
+                isActive: false,
+                verficationCode, 
+            });
             await this.userRepository.save(newUser);
+
+            //send verification email
+            const emailBody = `Your verification is ${verficationCode}`;
+            await this.resetPassService.sendMail(email, 'Email Verification', emailBody);
 
             console.log(this.userRepository);
             console.log("New user added", newUser);
@@ -71,6 +90,26 @@ export class UserService {
                 message: 'user signuped successfully !',
                 user : newUser,
             };
+        }
+
+        //Method to verify email with code
+        async verifyEmail(userId: number, code: string ): Promise<{ message: string }> {
+            const user = await this.userRepository.findOne({ where: { id: userId } });
+
+            if (!user) {
+                throw new BadRequestException("User nOt Found");
+            }
+
+            if (user.verficationCode !== code) {
+                throw new BadRequestException('Invalid verification code')
+            }
+
+            //If the code is correct then change the value of isActive to true and clear the VerifcationCode
+            user.isActive = true;
+            user.verficationCode = null;
+            await this.userRepository.save(user)
+
+            return { message: 'Email successfully  verified'}
         }
 
         async login(loginDto: loginUserDto) {
@@ -175,7 +214,6 @@ export class UserService {
                 .where("user.id = :userId", { userId})
                 .andWhere("movie.id = :movieId", { movieId })
                 .getOne();
-                
             if(isMovieAlreadyAdded) {
                 throw new BadRequestException("Movie Already in Favourites")
             }

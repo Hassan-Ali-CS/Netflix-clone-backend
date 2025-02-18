@@ -14,6 +14,11 @@ export class UserController {
         return this.userService.signup(signupDto); //calls the signup mrthod in the UserService, passing the extracted body signupDto as an argument. 
     }
 
+    @Post('verify-email/:userId')
+    async verifyEmail(@Param('userId') userId: number, @Body('code') code: string,) {
+        return this.userService.verifyEmail(userId, code);
+    }
+
     @Post('login')
     login(@Body() loginDto: loginUserDto){
         return this.userService.login(loginDto);

@@ -17,7 +17,7 @@ import { IsOptional } from "class-validator";
     @Column()
     password: string;
   
-    @Column({ default: true })
+    @Column({ default: false })
     isActive: boolean;
 
     @Column({ nullable: true })
@@ -25,6 +25,9 @@ import { IsOptional } from "class-validator";
 
     @Column({ type: 'timestamp', nullable: true })
     tokenExpiry: Date;
+
+    @Column({ nullable: true })
+    verficationCode: string;
 
     @ManyToMany(() => Movie, (movie) => movie.users, { cascade: true })
     @JoinTable() //This will create a linking table: user_movies
