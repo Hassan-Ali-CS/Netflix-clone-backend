@@ -19,7 +19,7 @@ import { UserService } from './user/user.service';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),//Makes ConfigModule(.env) available across the application
-    TypeOrmModule.forRoot(dataSourceOptions),
+    TypeOrmModule.forRoot(dataSourceOptions), //configures the database connection
     UserModule,MovieModule, AuthModule, SubscriptionModule, AdminModule, ResetpassModule, ],
   controllers: [AppController, MovieController, UserController],
   providers: [UserService, AppService, AuthService],

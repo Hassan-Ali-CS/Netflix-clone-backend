@@ -1,10 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { AuthService } from '../auth.service';
+import { Observable } from 'rxjs';  //allows guards to return asynchronous values if needed.
+import { AuthService } from '../auth.service';  // Injected to validate the token
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {} //The constructor injects the auth service into the guard. The private readonly keyword ensure that the authService is accessible within the class but cannot be modified
   
   canActivate (
     context: ExecutionContext,
@@ -18,7 +18,7 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Authorization header is missing');
     }
 
-    const token = authHeader.split(' ')[1]; //Extract the JWT TOKEN
+    const token = authHeader.split(' ')[1]; //The authorization header header is split into two parts: Bearer and the actual token. The second part contains the JWT token.
 
     try { 
       //validate the token and attach the decoded payload to the request object

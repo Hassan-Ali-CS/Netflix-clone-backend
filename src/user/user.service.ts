@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm'; //Inject TypeORM repositories.
+import { Repository } from 'typeorm'; //TypeORM repository for database queries.
 import { User } from './entities/user.entity';
 import { Movie } from 'src/movie/entities/movie.entity';
-import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
+import * as bcrypt from 'bcrypt';   //used for password hashing
+import { v4 as uuidv4 } from 'uuid';    //generates random unique tokens for password resets
 import { ResetpassService } from 'src/resetpass/resetpass.service';
 import { signupUserDto } from './DTO/signup-user.dto';
 import { loginUserDto } from './DTO/login-user.dto';

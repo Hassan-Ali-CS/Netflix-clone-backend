@@ -1,6 +1,6 @@
 import { DataSource, DataSourceOptions } from "typeorm";
-import * as dotenv from 'dotenv';
-dotenv.config()
+import * as dotenv from 'dotenv'; //Imports the package which is used to load environment variables from .env into process.env  
+dotenv.config() //initializes the package, which reads the .env file in the root and loads its contents into process.env
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
   host: process.env.DB_HOST,
