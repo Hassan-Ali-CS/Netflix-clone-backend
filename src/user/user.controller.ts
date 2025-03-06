@@ -9,41 +9,49 @@ export class UserController {
     // const userService =  new UserService()
     constructor(private readonly userService: UserService) {}    
 
+    @UseGuards(JwtAuthGuard)
     @Post('signup')
     signup(@Body()signupDto: signupUserDto){ 
         return this.userService.signup(signupDto); //calls the signup mrthod in the UserService, passing the extracted body signupDto as an argument. 
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post('verify-email/:userId')
     async verifyEmail(@Param('userId') userId: number, @Body('code') code: string,) {
         return this.userService.verifyEmail(userId, code);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post('login')
     login(@Body() loginDto: loginUserDto){
         return this.userService.login(loginDto);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post('forgot-password')
     async forgotPassword(@Body('email') email: string) {
         return this.userService.forgotPassword(email);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post('reset-password/:token')
     async resetPassword(@Param('token') token: string, @Body('password') password: string) {
         return this.userService.resetPassword(token, password);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post(':userId/favourites/:movieId')
     async addToFavorites(@Param('userId') userId: number, @Param('movieId') movieId: number) {
         return this.userService.addToFavourites(userId, movieId);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Delete(':userId/favourites/:movieId')
     async removeFromFavorites(@Param('userId') userId: number, @Param('movieId') movieId: number) {
         return this.userService.removeFromFavorites(userId, movieId);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get(':userId/favourites')
     async getFavorites(@Param('userId') userId: number) {
         return this.userService.getFavoriteMovies(userId);
