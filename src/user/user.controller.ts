@@ -10,15 +10,15 @@ import { join } from 'path';
 import * as path from 'path';
 import { Response } from 'express';
 import { updateMovieDto } from 'src/movie/dto/update-movie.dto';
-import { RolesGuard } from 'src/auth/jwt-auth/roles.guard'; // Import RolesGuard
-import {Roles} from "../auth/roles.decorator"; // Import Roles decorator
-import { Role } from 'src/user/roles.enum'; // Import Role enum
+import { RolesGuard } from 'src/auth/jwt-auth/roles.guard'; 
+import {Roles} from "../auth/roles.decorator"; 
+import { Role } from 'src/user/roles.enum'; 
 
-@Controller('user') // Base route: /user
+@Controller('user') 
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
-    // User Routes
+    
     @Post('signup')
     signup(@Body() signupDto: signupUserDto) {
         return this.userService.signup(signupDto);
@@ -29,19 +29,19 @@ export class UserController {
         return this.userService.verifyEmail(userId, code);
     }
 
-    @UseGuards(JwtAuthGuard)
+    
     @Post('login')
     login(@Body() loginDto: loginUserDto) {
         return this.userService.login(loginDto);
     }
 
-    @UseGuards(JwtAuthGuard)
+    
     @Post('forgot-password')
     async forgotPassword(@Body('email') email: string) {
         return this.userService.forgotPassword(email);
     }
 
-    @UseGuards(JwtAuthGuard)
+    
     @Post('reset-password/:token')
     async resetPassword(@Param('token') token: string, @Body('password') password: string) {
         return this.userService.resetPassword(token, password);
