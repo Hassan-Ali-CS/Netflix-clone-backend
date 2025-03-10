@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { signupUserDto } from 'src/user/DTO/signup-user.dto';
@@ -10,8 +10,7 @@ export class AuthService {
     constructor(
         private readonly jwtServices: JwtService,
         private readonly configService: ConfigService,
-        @Inject(forwardRef(() => UserService))
-                private readonly userService: UserService,
+        private readonly userService: UserService,
     ){}
 
     //Generate JWT Tokens

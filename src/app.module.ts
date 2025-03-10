@@ -9,7 +9,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from 'db/data-source';
 import { SubscriptionModule } from './subscription/subscription.module';
-import { AdminModule } from './admin/admin.module';
 import { UserController } from './user/user.controller';
 import { ResetpassModule } from './resetpass/resetpass.module';
 import { AuthService } from './auth/auth.service';
@@ -20,7 +19,7 @@ import { UserService } from './user/user.service';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),//Makes ConfigModule(.env) available across the application
     TypeOrmModule.forRoot(dataSourceOptions), //configures the database connection
-    UserModule,MovieModule, AuthModule, SubscriptionModule, AdminModule, ResetpassModule, ],
+    UserModule,MovieModule, AuthModule, SubscriptionModule,  ResetpassModule, ],
   controllers: [AppController, MovieController, UserController],
   providers: [UserService, AppService, AuthService],
   

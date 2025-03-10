@@ -1,29 +1,37 @@
-import { Body, Controller, Get, Post, UseGuards, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, Delete, Patch, UseGuards, UploadedFile, UseInterceptors, BadRequestException, Res } from '@nestjs/common';
 import { UserService } from './user.service';
 import { signupUserDto } from './DTO/signup-user.dto';
 import { loginUserDto } from './DTO/login-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth/jwt-auth.guard';
+import { CreateMovieDto } from 'src/movie/dto/create-movie.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { join } from 'path';
+import * as path from 'path';
+import { Response } from 'express';
+import { updateMovieDto } from 'src/movie/dto/update-movie.dto';
+import { RolesGuard } from 'src/auth/jwt-auth/roles.guard'; // Import RolesGuard
+import {Roles} from "../auth/roles.decorator"; // Import Roles decorator
+import { Role } from 'src/user/roles.enum'; // Import Role enum
 
-@Controller('user') //Base route: /user
+@Controller('user') // Base route: /user
 export class UserController {
-    // const userService =  new UserService()
-    constructor(private readonly userService: UserService) {}    
+    constructor(private readonly userService: UserService) {}
 
-    @UseGuards(JwtAuthGuard)
+    // User Routes
     @Post('signup')
-    signup(@Body()signupDto: signupUserDto){ 
-        return this.userService.signup(signupDto); //calls the signup mrthod in the UserService, passing the extracted body signupDto as an argument. 
+    signup(@Body() signupDto: signupUserDto) {
+        return this.userService.signup(signupDto);
     }
 
-    @UseGuards(JwtAuthGuard)
     @Post('verify-email/:userId')
-    async verifyEmail(@Param('userId') userId: number, @Body('code') code: string,) {
+    async verifyEmail(@Param('userId') userId: number, @Body('code') code: string) {
         return this.userService.verifyEmail(userId, code);
     }
 
     @UseGuards(JwtAuthGuard)
     @Post('login')
-    login(@Body() loginDto: loginUserDto){
+    login(@Body() loginDto: loginUserDto) {
         return this.userService.login(loginDto);
     }
 
@@ -57,4 +65,89 @@ export class UserController {
         return this.userService.getFavoriteMovies(userId);
     }
 
+    // Admin Routes - Only accessible by admin users
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.Admin) // Only users with 'admin' role can access this
+    @Get('admin/users')
+    getAllUsers() {
+        return this.userService.getAllUsers();
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.Admin)
+    @Delete('admin/users/:id')
+    deleteUser(@Param('id') id: number) {
+        return this.userService.deleteUser(id);
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.Admin)
+    @Get('admin/subscriptions')
+    getAllSubscriptions() {
+        return this.userService.getAllSubscriptions();
+    }
+
+    // Movie management - Admin only
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.Admin)
+    @Get('admin/movie')
+    getAllMovies() {
+        return this.userService.getAllMovies();
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.Admin)
+    @Post('admin/movie')
+    @UseInterceptors(FileInterceptor('file', {
+        storage: diskStorage({
+            destination: './uploads',
+            filename: (_, file, cb) => {
+                const fileExtName = path.extname(file.originalname);
+                const fileName = `${Date.now()}${fileExtName}`;
+                console.log("Generated File Name:", fileName);
+                cb(null, fileName);
+            },
+        }),
+    }))
+    async createMovie(@UploadedFile() file: Express.Multer.File, @Body() createMovieDto: CreateMovieDto) {
+        console.log("Received File", file);
+        console.log("Received Body:", createMovieDto);
+
+        if (!file) { 
+            throw new BadRequestException("No file uploaded");
+        }
+        return this.userService.create(file, createMovieDto);
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.Admin)
+    @Get('admin/image/:filename') // Route to serve images
+    async getImage(@Param('filename') filename: string, @Res() res: Response) {
+        const filePath = join(process.cwd(), 'uploads', filename);
+
+        try {
+            res.sendFile(filePath, (err) => {
+                if (err) {
+                    res.status(404).send('Image not found');
+                }
+            });
+        } catch (error) {
+            console.error('Error serving image:', error);
+            res.status(500).send('Internal Server Error');
+        }
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.Admin)
+    @Patch('admin/movie/:id')
+    updateMovie(@Param('id') id: number, @Body() updateMovieDto: updateMovieDto) {
+        return this.userService.updateMovie(id, updateMovieDto);
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.Admin)
+    @Delete('admin/movie/:id')
+    deleteMovie(@Param('id') id: number) {
+        return this.userService.deleteMovie(id);
+    }
 }

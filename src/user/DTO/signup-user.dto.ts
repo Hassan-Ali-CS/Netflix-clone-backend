@@ -13,5 +13,7 @@ export class signupUserDto{
     @MinLength(6,{ message: 'Password must be at least six characters long' })
     password: string;
     
+    @IsString()
+    role: string;
 };
 

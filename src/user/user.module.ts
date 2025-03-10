@@ -8,12 +8,18 @@ import { Movie } from 'src/movie/entities/movie.entity';
 import { AuthService } from 'src/auth/auth.service';
 import { AuthModule } from 'src/auth/auth.module';
 import { MovieModule } from 'src/movie/movie.module';
+import { SubscriptionModule } from 'src/subscription/subscription.module';  // Correctly import SubscriptionModule
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, Movie]), ResetpassModule,MovieModule,  forwardRef(() => AuthModule)], //Register User Entity
-  
-    controllers: [UserController],
-    providers: [UserService, AuthService],
-    exports: [UserService]
+  imports: [
+    TypeOrmModule.forFeature([User, Movie]),
+    ResetpassModule,
+    MovieModule,
+    forwardRef(() => AuthModule),
+    forwardRef(() => SubscriptionModule),  // Ensure this is imported to resolve circular dependencies
+  ],
+  controllers: [UserController],
+  providers: [UserService, AuthService],
+  exports: [UserService],
 })
 export class UserModule {}

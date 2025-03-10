@@ -29,6 +29,9 @@ import { IsOptional } from "class-validator";
     @Column({ nullable: true })
     verficationCode: string;
 
+    @Column({ default: "customer", nullable: false })
+    role: string;
+
     @ManyToMany(() => Movie, (movie) => movie.users, { cascade: true })
     @JoinTable() //This will create a linking table: user_movies
     favouriteMovies: Movie[];
